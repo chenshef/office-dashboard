@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chen Sheffer — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:      #0b1b3d;
+  --blue:      #2563eb;
+  --blue-dark: #1d4ed8;
+  --blue-50:   #eff6ff;
+  --blue-100:  #dbeafe;
+  --blue-200:  #bfdbfe;
+  --slate-50:  #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --white:     #ffffff;
+  --red-50:    #fff1f2;
+  --red-100:   #ffe4e6;
+  --red-500:   #ef4444;
+  --red-600:   #dc2626;
+  --amber-50:  #fffbeb;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --green-50:  #f0fdf4;
+  --green-600: #16a34a;
+  --violet-50: #f5f3ff;
+  --violet-600:#7c3aed;
+  --teal-50:   #f0fdfa;
+  --teal-600:  #0d9488;
+  --orange-50: #fff7ed;
+  --orange-600:#ea580c;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --shadow:    0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --radius:    12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Lato',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--slate-50);color:var(--slate-700);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ── NAV ── */
+nav{background:var(--white);border-bottom:1px solid var(--slate-200);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm)}
+.nav-inner{max-width:1400px;margin:0 auto;padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between}
+.logo-name{font-size:17px;font-weight:900;color:var(--navy);letter-spacing:-.3px;cursor:default}
+.nav-links{display:flex;align-items:center;gap:4px}
+.tab-btn{font-size:14px;font-weight:700;color:var(--navy);padding:8px 16px;border-radius:8px;text-decoration:none;border:none;background:none;cursor:pointer;transition:background .15s;font-family:inherit}
+.tab-btn:hover{background:var(--slate-100)}
+.tab-btn.active{color:var(--blue)}
+.month-pill{display:inline-flex;align-items:center;gap:6px;background:var(--blue);color:var(--white);font-size:13px;font-weight:700;padding:9px 20px;border-radius:999px;border:none;cursor:default;margin-left:10px;font-family:inherit;box-shadow:0 2px 8px rgba(37,99,235,.25)}
+.signout-btn{display:inline-flex;align-items:center;gap:6px;background:#dc2626;color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;margin-left:10px;font-family:inherit;transition:background .15s}
+.signout-btn:hover{background:#ef4444}
+
+/* ── SUBBAR (holidays / account info) ── */
+.subbar{background:var(--white);border-bottom:1px solid var(--slate-200)}
+.subbar-inner{max-width:1400px;margin:0 auto;padding:10px 40px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sub-label{font-size:11px;font-weight:900;color:var(--slate-400);text-transform:uppercase;letter-spacing:.8px;margin-right:4px}
+.hol{font-size:11.5px;font-weight:700;padding:3px 12px;border-radius:999px;background:var(--teal-50);border:1px solid #99f6e4;color:var(--teal-600)}
+.hol.red{background:var(--red-50);border-color:var(--red-100);color:var(--red-600)}
+
+/* ── PAGE ── */
+.page{max-width:1400px;margin:0 auto;padding:36px 40px 60px;display:flex;flex-direction:column;gap:44px}
+.tab-section{display:none}
+.tab-section.visible{display:flex;flex-direction:column;gap:44px}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat{background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);padding:22px 24px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);transition:box-shadow .2s}
+.stat:hover{box-shadow:var(--shadow-md)}
+.stat-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.si-blue  {background:var(--blue-50); border:1px solid var(--blue-100)}
+.si-teal  {background:var(--teal-50); border:1px solid #99f6e4}
+.si-amber {background:var(--amber-50);border:1px solid #fde68a}
+.si-red   {background:var(--red-50);  border:1px solid var(--red-100)}
+.si-violet{background:var(--violet-50);border:1px solid #ede9fe}
+.si-green {background:var(--green-50);border:1px solid #bbf7d0}
+.stat-info{display:flex;flex-direction:column;gap:2px}
+.stat-value{font-size:28px;font-weight:900;color:var(--navy);line-height:1;letter-spacing:-.5px}
+.stat-label{font-size:12px;color:var(--slate-500);font-weight:700}
+
+/* ── SECTION HEADER ── */
+.sec-head{margin-bottom:18px}
+.sec-badge{display:inline-flex;align-items:center;gap:7px;background:var(--blue-50);border:1px solid var(--blue-200);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:700;color:var(--blue);margin-bottom:10px}
+.sec-badge svg{width:13px;height:13px}
+.sec-title{font-size:26px;font-weight:900;color:var(--navy);letter-spacing:-.4px;line-height:1.1}
+.sec-title span{color:var(--blue)}
+.sec-sub{font-size:14px;color:var(--slate-500);margin-top:4px}
+.sec-meta{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+/* ── TABLE CARD ── */
+.card{background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--slate-50);border-bottom:2px solid var(--slate-200)}
+thead th{padding:12px 16px;text-align:left;font-size:11px;font-weight:900;color:var(--slate-500);letter-spacing:.9px;text-transform:uppercase;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--slate-100);transition:background .12s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--blue-50)}
+tbody td{padding:14px 16px;vertical-align:middle}
+
+/* ── CELLS ── */
+.n{font-size:11px;font-weight:900;color:var(--slate-300);text-align:center}
+.day-cell{display:flex;flex-direction:column}
+.day-name{font-size:10px;font-weight:900;color:var(--slate-400);text-transform:uppercase;letter-spacing:.5px}
+.day-num{font-size:15px;font-weight:900;color:var(--navy);margin-top:1px}
+.time-pill{display:inline-flex;align-items:center;gap:6px;background:var(--slate-50);border:1px solid var(--slate-200);padding:4px 10px;border-radius:8px;font-size:12.5px;font-weight:700;white-space:nowrap;color:var(--slate-700)}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-blue  {background:var(--blue)}
+.dot-amber {background:var(--amber-500)}
+.dot-green {background:var(--green-600)}
+.dot-red   {background:var(--red-500)}
+.dot-teal  {background:var(--teal-600)}
+.dot-violet{background:var(--violet-600)}
+.dur{font-size:12px;font-weight:700;color:var(--slate-400)}
+.subj-title{font-size:13.5px;font-weight:700;color:var(--navy);display:block;line-height:1.3}
+.subj-sub{font-size:12px;color:var(--slate-500);display:block;margin-top:3px}
+
+/* ── SENDER ── */
+.sender{display:flex;align-items:center;gap:11px}
+.av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--white);flex-shrink:0;text-transform:uppercase}
+.av-blue  {background:linear-gradient(135deg,#2563eb,#60a5fa)}
+.av-red   {background:linear-gradient(135deg,#dc2626,#f87171)}
+.av-amber {background:linear-gradient(135deg,#d97706,#fbbf24)}
+.av-violet{background:linear-gradient(135deg,#7c3aed,#a78bfa)}
+.av-teal  {background:linear-gradient(135deg,#0d9488,#2dd4bf)}
+.av-slate {background:linear-gradient(135deg,#475569,#94a3b8)}
+.av-navy  {background:linear-gradient(135deg,#0b1b3d,#1e40af)}
+.s-name{font-size:13px;font-weight:700;color:var(--navy)}
+.s-email{font-size:11px;color:var(--slate-400)}
+.subj{font-size:13.5px;font-weight:700;color:var(--navy);line-height:1.3}
+.prev{font-size:12px;color:var(--slate-500);margin-top:3px;line-height:1.5;max-width:500px}
+.dt-main{font-size:13px;font-weight:700;color:var(--slate-700)}
+.dt-time{font-size:11px;color:var(--slate-400);margin-top:1px}
+
+/* ── PILLS ── */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.pill-blue  {background:var(--blue-50);  color:var(--blue);      border:1px solid var(--blue-200)}
+.pill-navy  {background:#eff2ff;         color:var(--navy);      border:1px solid #c7d2fe}
+.pill-teal  {background:var(--teal-50);  color:var(--teal-600);  border:1px solid #99f6e4}
+.pill-amber {background:var(--amber-50); color:var(--amber-600); border:1px solid #fde68a}
+.pill-red   {background:var(--red-50);   color:var(--red-600);   border:1px solid #fecaca}
+.pill-slate {background:var(--slate-100);color:var(--slate-600); border:1px solid var(--slate-200)}
+.pill-violet{background:var(--violet-50);color:var(--violet-600);border:1px solid #ddd6fe}
+.pill-green {background:var(--green-50); color:var(--green-600); border:1px solid #bbf7d0}
+.pill-orange{background:var(--orange-50);color:var(--orange-600);border:1px solid #fed7aa}
+
+/* ── CATEGORY (email) ── */
+.cat{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.cat-personal{background:var(--teal-50);  color:var(--teal-600);  border:1px solid #99f6e4}
+.cat-security{background:var(--violet-50);color:var(--violet-600);border:1px solid #ddd6fe}
+.cat-news    {background:var(--green-50); color:var(--green-600); border:1px solid #bbf7d0}
+.cat-social  {background:var(--blue-50);  color:var(--blue);      border:1px solid var(--blue-200)}
+
+/* ── TAGS ── */
+.tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.tag-blue {background:var(--blue-50); color:var(--blue);      border:1px solid var(--blue-200)}
+.tag-slate{background:var(--slate-100);color:var(--slate-600);border:1px solid var(--slate-200)}
+.tag-teal {background:var(--teal-50); color:var(--teal-600);  border:1px solid #99f6e4}
+
+/* ── NOTES GRID ── */
+.notes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.note-card{background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;display:flex;flex-direction:column;gap:14px}
+.note-num{font-size:10.5px;font-weight:900;color:var(--slate-400);text-transform:uppercase;letter-spacing:.8px}
+.note-title{font-size:16px;font-weight:900;color:var(--navy)}
+.note-body{flex:1;font-size:13px;color:var(--slate-500);line-height:1.6}
+.note-footer{display:flex;justify-content:space-between;font-size:11px;color:var(--slate-400);font-weight:700;border-top:1px solid var(--slate-100);padding-top:10px}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--slate-200);background:var(--white);padding:20px 40px}
+.footer-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.footer-txt{font-size:12px;color:var(--slate-400);font-weight:700}
+
+/* ── CALENDAR GRID ── */
+.cal-grid-wrap{background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0}
+.cal-dh{background:var(--slate-50);border-bottom:2px solid var(--slate-200);padding:9px 6px;text-align:center;font-size:11px;font-weight:900;color:var(--slate-500);text-transform:uppercase;letter-spacing:.7px;border-right:1px solid var(--slate-100)}
+.cal-dh:last-child{border-right:none}
+.cal-day{min-height:92px;padding:8px 7px;border-right:1px solid var(--slate-100);border-bottom:1px solid var(--slate-100);background:var(--white)}
+.cal-day:nth-child(7n){border-right:none}
+.cal-day.other-m{background:var(--slate-50)}
+.cal-day.pesach{background:#f0fdf4}
+.cal-day-num{font-size:13px;font-weight:900;color:var(--navy);width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:4px}
+.cal-day.other-m .cal-day-num{color:var(--slate-300)}
+.cal-chip{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:1.45}
+.chip-blue{background:var(--blue-50);color:var(--blue);border:1px solid var(--blue-100)}
+.chip-amber{background:var(--amber-50);color:var(--amber-600);border:1px solid #fde68a}
+.chip-red{background:var(--red-50);color:var(--red-600);border:1px solid var(--red-100)}
+.chip-teal{background:var(--teal-50);color:var(--teal-600);border:1px solid #99f6e4}
+.chip-green{background:var(--green-50);color:var(--green-600);border:1px solid #bbf7d0}
+.chip-hol{background:#f0fdf4;color:var(--teal-600);border:1px solid #99f6e4;font-style:italic}
+.chip-hol.red{background:var(--red-50);color:var(--red-600);border:1px solid var(--red-100)}
+.chip-hol.blue{background:var(--blue-50);color:var(--blue);border:1px solid var(--blue-100)}
+/* Week strip */
+.week-strip-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.wk-day{padding:14px 11px;border-right:1px solid var(--slate-100);min-height:130px}
+.wk-day:last-child{border-right:none}
+.wk-day.has-ev{background:var(--blue-50)}
+.wk-day-name{font-size:10px;font-weight:900;color:var(--slate-400);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.wk-day-num{font-size:26px;font-weight:900;color:var(--navy);margin-bottom:8px;line-height:1}
+/* Tasks section split */
+.tasks-list-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.tasks-list-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 18px;border-radius:999px;font-size:13px;font-weight:900}
+.tlb-work{background:var(--blue-50);color:var(--blue);border:2px solid var(--blue-200)}
+.tlb-home{background:var(--amber-50);color:var(--amber-600);border:2px solid #fde68a}
+.tasks-divider{border:none;border-top:2px dashed var(--slate-200);margin:32px 0}
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--slate-100)}
+::-webkit-scrollbar-thumb{background:var(--slate-300);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo-name">Chen Sheffer</div>
+    <div class="nav-links">
+      <button class="tab-btn active" onclick="showTab('inbox',this)">Inbox</button>
+      <button class="tab-btn" onclick="showTab('calendar',this)">Calendar</button>
+      <button class="tab-btn" onclick="showTab('tasks',this)">Tasks</button>
+      <button class="tab-btn" onclick="showTab('notebooks',this)">Notebooks</button>
+      <button class="tab-btn" onclick="showTab('gmail',this)">Gmail</button>
+      <span class="month-pill">📅 April 2026</span>
+      <button class="signout-btn" onclick="window.top.location.href='/api/auth/signout'">🚪 Sign Out</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ SUBBAR ══ -->
+<div class="subbar" id="subbar-inbox">
+  <div class="subbar-inner">
+    <span class="sub-label">📬 Account</span>
+    <span class="hol">chenshef@gmail.com · 551,767 messages</span>
+    <span class="hol">10 fetched live · March 14, 2026</span>
+  </div>
+</div>
+<div class="subbar" id="subbar-calendar" style="display:none">
+  <div class="subbar-inner">
+    <span class="sub-label">🇮🇱 April holidays</span>
+    <span class="hol">🌿 Pesach Apr 2–8</span>
+    <span class="hol">🥳 Mimouna Apr 9</span>
+    <span class="hol red">🕯️ Yom HaShoah Apr 16</span>
+    <span class="hol red">🎗️ Yom Hazikaron Apr 28</span>
+    <span class="hol">🇮🇱 Yom Ha'atzmaut Apr 29</span>
+  </div>
+</div>
+<div class="subbar" id="subbar-tasks" style="display:none">
+  <div class="subbar-inner">
+    <span class="sub-label">✅ Google Tasks</span>
+    <span class="hol">chenshef@gmail.com · Live</span>
+    <span class="hol">WORK list · 10 active tasks</span>
+    <span class="hol">Home-TASKS · 2 tasks</span>
+  </div>
+</div>
+<div class="subbar" id="subbar-notebooks" style="display:none">
+  <div class="subbar-inner">
+    <span class="sub-label">📓 Notebooks</span>
+    <span class="hol">OneNote · chenshef@gmail.com</span>
+  </div>
+</div>
+
+<div class="subbar" id="subbar-gmail" style="display:none">
+  <div class="subbar-inner">
+    <span class="sub-label">✉️ Gmail</span>
+    <span class="hol">Gmail · chenshef@gmail.com · Live · 10 recent · 201 total</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ════════════════════════════════
+       TAB: INBOX
+  ════════════════════════════════ -->
+  <div id="tab-inbox" class="tab-section visible">
+
+    <div class="stats">
+      <div class="stat"><div class="stat-icon si-blue">📬</div><div class="stat-info"><div class="stat-value">10</div><div class="stat-label">Emails Shown · Live</div></div></div>
+      <div class="stat"><div class="stat-icon si-violet">🔐</div><div class="stat-info"><div class="stat-value">3</div><div class="stat-label">Security Alerts · Google</div></div></div>
+      <div class="stat"><div class="stat-icon si-amber">💼</div><div class="stat-info"><div class="stat-value">5</div><div class="stat-label">Job Alerts · Drushim IL</div></div></div>
+      <div class="stat"><div class="stat-icon si-green">📰</div><div class="stat-info"><div class="stat-value">2</div><div class="stat-label">News &amp; Social</div></div></div>
+    </div>
+
+    <section>
+      <div class="sec-head">
+        <div class="sec-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Gmail — Live
+        </div>
+        <div class="sec-title">Your inbox. <span>Last 10 emails.</span></div>
+        <div class="sec-sub">chenshef@gmail.com · 551,767 messages · Sorted by most recent</div>
+        <div class="sec-meta">
+          <span class="tag tag-blue">📧 chenshef@gmail.com</span>
+          <span class="tag tag-slate">Fetched live · March 14, 2026</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px">#</th>
+              <th style="width:185px">Sender</th>
+              <th>Subject &amp; Preview</th>
+              <th style="width:130px">Category</th>
+              <th style="width:155px">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="n">1</td>
+              <td><div class="sender"><div class="av av-blue">SA</div><div><div class="s-name">Must Reads · Seeking Alpha</div><div class="s-email">account@seekingalpha.com</div></div></div></td>
+              <td><div class="subj">The Social Security Trust Fund Is Rapidly Approaching Insolvency</div><div class="prev">Social Security's Old Age and Survivors Insurance Trust Fund is projected to be depleted by fiscal year 2031…</div></td>
+              <td><span class="cat cat-news">📰 Newsletter</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">16:50</div></td>
+            </tr>
+            <tr>
+              <td class="n">2</td>
+              <td><div class="sender"><div class="av av-amber">DR</div><div><div class="s-name">הסוכנת מדרושים IL</div><div class="s-email">alerts@drushim.co.il</div></div></div></td>
+              <td><div class="subj">2 משרות חדשות שפורסמו עכשיו בדרושים IL</div><div class="prev">מנהל/ת פרויקטים אבטחת מידע בפתח תקווה · מנהל/ת פרויקטים ומנתח/ת מערכות Malam</div></td>
+              <td><span class="cat cat-personal">💼 Job Alert</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">22:13</div></td>
+            </tr>
+            <tr>
+              <td class="n">3</td>
+              <td><div class="sender"><div class="av av-violet">IG</div><div><div class="s-name">Instagram</div><div class="s-email">follow-suggestions@mail.instagram.com</div></div></div></td>
+              <td><div class="subj">chenshef, see daviderez, liat_hakim and more in your feed</div><div class="prev">Suggested accounts based on your interests: daviderez, liat_hakim, and 4 others</div></td>
+              <td><span class="cat cat-social">📲 Social</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">12:53</div></td>
+            </tr>
+            <tr>
+              <td class="n">4</td>
+              <td><div class="sender"><div class="av av-amber">DR</div><div><div class="s-name">הסוכנת מדרושים IL</div><div class="s-email">alerts@drushim.co.il</div></div></div></td>
+              <td><div class="subj">7 משרות חדשות שפורסמו עכשיו בדרושים IL</div><div class="prev">מוקד שירות בשעות הבוקר! גמישות לסטודנטים · מנהל/ת פרויקטים · נציג/ה מכירות ועוד 4 משרות</div></td>
+              <td><span class="cat cat-personal">💼 Job Alert</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">21:37</div></td>
+            </tr>
+            <tr>
+              <td class="n">5</td>
+              <td><div class="sender"><div class="av av-amber">DR</div><div><div class="s-name">הסוכנת מדרושים IL</div><div class="s-email">alerts@drushim.co.il</div></div></div></td>
+              <td><div class="subj">משרה חדשה! נציג מכירות הסעים אולם תצוגה תל אביב + רכב צמוד!!</div><div class="prev">כלמוביל תל אביב · נציג מכירות אולם תצוגה עם רכב צמוד · פתח תקווה 150 ק"מ</div></td>
+              <td><span class="cat cat-personal">💼 Job Alert</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">21:01</div></td>
+            </tr>
+            <tr>
+              <td class="n">6</td>
+              <td><div class="sender"><div class="av av-amber">DR</div><div><div class="s-name">הסוכנת מדרושים IL</div><div class="s-email">alerts@drushim.co.il</div></div></div></td>
+              <td><div class="subj">משרה חדשה! CISO</div><div class="prev">מנהל/ת אבטחת מידע — Proceed · איירפורט סיטי · תל אביב 30 ק"מ · משרה מלאה · ניסיון 3-4 שנים</div></td>
+              <td><span class="cat cat-personal">💼 Job Alert</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">21:01</div></td>
+            </tr>
+            <tr>
+              <td class="n">7</td>
+              <td><div class="sender"><div class="av av-amber">DR</div><div><div class="s-name">הסוכנת מדרושים IL</div><div class="s-email">alerts@drushim.co.il</div></div></div></td>
+              <td><div class="subj">משרה חדשה! מנהל/ת סניף במותג אופנה בינלאומי</div><div class="prev">ראש/ת צוות מכירות · מותג אופנה בינלאומי חסוי · כפר סבא / רעננה · פתח תקווה 100 ק"מ</div></td>
+              <td><span class="cat cat-personal">💼 Job Alert</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">20:58</div></td>
+            </tr>
+            <tr>
+              <td class="n">8</td>
+              <td><div class="sender"><div class="av av-red">G</div><div><div class="s-name">Google</div><div class="s-email">no-reply@accounts.google.com</div></div></div></td>
+              <td><div class="subj">Security alert — Claude for Google Drive access granted</div><div class="prev">You allowed Claude for Google Drive access to some of your Google Account data (chenshef@gmail.com)</div></td>
+              <td><span class="cat cat-security">🔐 Security</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">18:50</div></td>
+            </tr>
+            <tr>
+              <td class="n">9</td>
+              <td><div class="sender"><div class="av av-red">G</div><div><div class="s-name">Google</div><div class="s-email">no-reply@accounts.google.com</div></div></div></td>
+              <td><div class="subj">Security alert — Claude for Google Calendar access granted</div><div class="prev">You allowed Claude for Google Calendar access to some of your Google Account data (chenshef@gmail.com)</div></td>
+              <td><span class="cat cat-security">🔐 Security</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">18:45</div></td>
+            </tr>
+            <tr>
+              <td class="n">10</td>
+              <td><div class="sender"><div class="av av-red">G</div><div><div class="s-name">Google</div><div class="s-email">no-reply@accounts.google.com</div></div></div></td>
+              <td><div class="subj">Security alert — Claude for Gmail access granted</div><div class="prev">You allowed Claude for Gmail access to some of your Google Account data (chenshef@gmail.com)</div></td>
+              <td><span class="cat cat-security">🔐 Security</span></td>
+              <td><div class="dt-main">Sat, 14 Mar 2026</div><div class="dt-time">18:44</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div><!-- /tab-inbox -->
+
+
+  <!-- ════════════════════════════════
+       TAB: CALENDAR
+  ════════════════════════════════ -->
+  <div id="tab-calendar" class="tab-section">
+
+    <div class="stats">
+      <div class="stat"><div class="stat-icon si-blue">📅</div><div class="stat-info"><div class="stat-value">10</div><div class="stat-label">Total Events · April 2026</div></div></div>
+      <div class="stat"><div class="stat-icon si-teal">🎓</div><div class="stat-info"><div class="stat-value">4</div><div class="stat-label">CISO Course · Every Monday</div></div></div>
+      <div class="stat"><div class="stat-icon si-amber">🔒</div><div class="stat-info"><div class="stat-value">5</div><div class="stat-label">Private Slots · Every Thursday</div></div></div>
+      <div class="stat"><div class="stat-icon si-red">🎂</div><div class="stat-info"><div class="stat-value">1</div><div class="stat-label">Family Event · Mika Apr 10</div></div></div>
+    </div>
+
+    <section>
+      <div class="sec-head">
+        <div class="sec-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Google Calendar — Live
+        </div>
+        <div class="sec-title">April 2026 Meetings. <span>10 events.</span></div>
+        <div class="sec-sub">chen@chensheffer.com (9 events) + chenshef@gmail.com (1 event) · Asia/Jerusalem</div>
+        <div class="sec-meta">
+          <span class="tag tag-blue">📅 2 Calendars</span>
+          <span class="tag tag-slate">Fetched live · March 2026</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px">#</th>
+              <th style="width:105px">Day</th>
+              <th style="width:165px">Time</th>
+              <th style="width:65px">Dur.</th>
+              <th>Subject</th>
+              <th style="width:185px">Calendar</th>
+              <th style="width:110px">Format</th>
+              <th style="width:90px">Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="n">1</td>
+              <td><div class="day-cell"><span class="day-name">Thu</span><span class="day-num">Apr 2</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-amber"></span>16:15 – 21:45</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">Untitled / Private Event</span><span class="subj-sub">Recurring every Thursday · visibility: private</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-amber">🔒 Private</span></td>
+              <td><span class="pill pill-slate">⬤ Medium</span></td>
+            </tr>
+            <tr>
+              <td class="n">2</td>
+              <td><div class="day-cell"><span class="day-name">Mon</span><span class="day-num">Apr 6</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-blue"></span>16:30 – 22:00</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">קורס CISO | CISSP | CHECK TEAMS</span><span class="subj-sub">Physical &amp; Virtual — Cybersecurity Leadership Course</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-blue">⚡ Hybrid</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">3</td>
+              <td><div class="day-cell"><span class="day-name">Thu</span><span class="day-num">Apr 9</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-amber"></span>16:15 – 21:45</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">Untitled / Private Event</span><span class="subj-sub">Recurring every Thursday · Mimouna eve</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-amber">🔒 Private</span></td>
+              <td><span class="pill pill-slate">⬤ Medium</span></td>
+            </tr>
+            <tr>
+              <td class="n">4</td>
+              <td><div class="day-cell"><span class="day-name">Fri</span><span class="day-num">Apr 10</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-green"></span>08:00 – 08:30</span></td>
+              <td><span class="dur">30m</span></td>
+              <td><span class="subj-title">🎂 יום הולדת מיקה — Mika's Birthday</span><span class="subj-sub">David &amp; Chen's daughter · Born 2008 · Annual reminder</span></td>
+              <td><span class="pill pill-teal">👨‍👩‍👧 chenshef@gmail.com</span></td>
+              <td><span class="pill pill-green">🎉 Personal</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">5</td>
+              <td><div class="day-cell"><span class="day-name">Mon</span><span class="day-num">Apr 13</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-blue"></span>16:30 – 22:00</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">קורס CISO | CISSP | CHECK TEAMS</span><span class="subj-sub">Physical &amp; Virtual — Cybersecurity Leadership Course</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-blue">⚡ Hybrid</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">6</td>
+              <td><div class="day-cell"><span class="day-name">Thu</span><span class="day-num">Apr 16</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-amber"></span>16:15 – 21:45</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">Untitled / Private Event</span><span class="subj-sub">Recurring every Thursday · Yom HaShoah</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-amber">🔒 Private</span></td>
+              <td><span class="pill pill-slate">⬤ Medium</span></td>
+            </tr>
+            <tr>
+              <td class="n">7</td>
+              <td><div class="day-cell"><span class="day-name">Mon</span><span class="day-num">Apr 20</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-blue"></span>16:30 – 22:00</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">קורס CISO | CISSP | CHECK TEAMS</span><span class="subj-sub">Physical &amp; Virtual — Cybersecurity Leadership Course</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-blue">⚡ Hybrid</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">8</td>
+              <td><div class="day-cell"><span class="day-name">Thu</span><span class="day-num">Apr 23</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-amber"></span>16:15 – 21:45</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">Untitled / Private Event</span><span class="subj-sub">Recurring every Thursday · details hidden</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-amber">🔒 Private</span></td>
+              <td><span class="pill pill-slate">⬤ Medium</span></td>
+            </tr>
+            <tr>
+              <td class="n">9</td>
+              <td><div class="day-cell"><span class="day-name">Mon</span><span class="day-num">Apr 27</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-blue"></span>16:30 – 22:00</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">קורס CISO | CISSP | CHECK TEAMS</span><span class="subj-sub">Physical &amp; Virtual — Cybersecurity Leadership Course</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-blue">⚡ Hybrid</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">10</td>
+              <td><div class="day-cell"><span class="day-name">Thu</span><span class="day-num">Apr 30</span></div></td>
+              <td><span class="time-pill"><span class="dot dot-amber"></span>16:15 – 21:45</span></td>
+              <td><span class="dur">5h 30m</span></td>
+              <td><span class="subj-title">Untitled / Private Event</span><span class="subj-sub">Recurring every Thursday · details hidden</span></td>
+              <td><span class="pill pill-navy">💼 chen@chensheffer.com</span></td>
+              <td><span class="pill pill-amber">🔒 Private</span></td>
+              <td><span class="pill pill-slate">⬤ Medium</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ MONTHLY CALENDAR GRID ══ -->
+    <section>
+      <div class="sec-head">
+        <div class="sec-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          April 2026 — Monthly View
+        </div>
+        <div class="sec-title">April <span>2026.</span></div>
+        <div class="sec-sub">Monthly calendar grid · chen@chensheffer.com · All events placed</div>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="cal-grid">
+          <!-- Headers -->
+          <div class="cal-dh">Sun</div><div class="cal-dh">Mon</div><div class="cal-dh">Tue</div><div class="cal-dh">Wed</div><div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div>
+          <!-- Week 1: Mar 29 – Apr 4 -->
+          <div class="cal-day other-m"><div class="cal-day-num">29</div></div>
+          <div class="cal-day other-m"><div class="cal-day-num">30</div></div>
+          <div class="cal-day other-m"><div class="cal-day-num">31</div></div>
+          <div class="cal-day"><div class="cal-day-num">1</div></div>
+          <div class="cal-day pesach"><div class="cal-day-num">2</div><span class="cal-chip chip-amber">🔒 Private 16:15</span><span class="cal-chip chip-hol">🌿 Pesach</span></div>
+          <div class="cal-day pesach"><div class="cal-day-num">3</div><span class="cal-chip chip-hol">🌿 Pesach</span></div>
+          <div class="cal-day pesach"><div class="cal-day-num">4</div><span class="cal-chip chip-hol">🌿 Pesach</span></div>
+          <!-- Week 2: Apr 5 – Apr 11 -->
+          <div class="cal-day pesach"><div class="cal-day-num">5</div><span class="cal-chip chip-hol">🌿 Pesach</span></div>
+          <div class="cal-day pesach"><div class="cal-day-num">6</div><span class="cal-chip chip-blue">💼 CISO 16:30</span><span class="cal-chip chip-hol">🌿 Pesach</span></div>
+          <div class="cal-day pesach"><div class="cal-day-num">7</div><span class="cal-chip chip-hol">🌿 Pesach</span></div>
+          <div class="cal-day pesach"><div class="cal-day-num">8</div><span class="cal-chip chip-hol">🌿 Pesach</span></div>
+          <div class="cal-day"><div class="cal-day-num">9</div><span class="cal-chip chip-amber">🔒 Private 16:15</span><span class="cal-chip chip-hol">🥳 Mimouna</span></div>
+          <div class="cal-day"><div class="cal-day-num">10</div><span class="cal-chip chip-green">🎂 Mika B-day</span></div>
+          <div class="cal-day"><div class="cal-day-num">11</div></div>
+          <!-- Week 3: Apr 12 – Apr 18 -->
+          <div class="cal-day"><div class="cal-day-num">12</div></div>
+          <div class="cal-day"><div class="cal-day-num">13</div><span class="cal-chip chip-blue">💼 CISO 16:30</span></div>
+          <div class="cal-day"><div class="cal-day-num">14</div></div>
+          <div class="cal-day"><div class="cal-day-num">15</div></div>
+          <div class="cal-day"><div class="cal-day-num">16</div><span class="cal-chip chip-amber">🔒 Private 16:15</span><span class="cal-chip chip-hol red">🕯️ Yom HaShoah</span></div>
+          <div class="cal-day"><div class="cal-day-num">17</div></div>
+          <div class="cal-day"><div class="cal-day-num">18</div></div>
+          <!-- Week 4: Apr 19 – Apr 25 -->
+          <div class="cal-day"><div class="cal-day-num">19</div></div>
+          <div class="cal-day"><div class="cal-day-num">20</div><span class="cal-chip chip-blue">💼 CISO 16:30</span></div>
+          <div class="cal-day"><div class="cal-day-num">21</div></div>
+          <div class="cal-day"><div class="cal-day-num">22</div></div>
+          <div class="cal-day"><div class="cal-day-num">23</div><span class="cal-chip chip-amber">🔒 Private 16:15</span></div>
+          <div class="cal-day"><div class="cal-day-num">24</div></div>
+          <div class="cal-day"><div class="cal-day-num">25</div></div>
+          <!-- Week 5: Apr 26 – May 2 -->
+          <div class="cal-day"><div class="cal-day-num">26</div></div>
+          <div class="cal-day"><div class="cal-day-num">27</div><span class="cal-chip chip-blue">💼 CISO 16:30</span></div>
+          <div class="cal-day"><div class="cal-day-num">28</div><span class="cal-chip chip-hol red">🎗️ Yom Hazikaron</span></div>
+          <div class="cal-day"><div class="cal-day-num">29</div><span class="cal-chip chip-hol blue">🇮🇱 Independence</span></div>
+          <div class="cal-day"><div class="cal-day-num">30</div><span class="cal-chip chip-amber">🔒 Private 16:15</span></div>
+          <div class="cal-day other-m"><div class="cal-day-num">1</div></div>
+          <div class="cal-day other-m"><div class="cal-day-num">2</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ UPCOMING WEEK STRIP ══ -->
+    <section>
+      <div class="sec-head">
+        <div class="sec-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Upcoming Week — Apr 5–11
+        </div>
+        <div class="sec-title">Week View. <span>Apr 5–11, 2026.</span></div>
+        <div class="sec-sub">First active week in April · 3 events</div>
+      </div>
+      <div class="week-strip-grid">
+        <div class="wk-day">
+          <div class="wk-day-name">Sun</div>
+          <div class="wk-day-num">5</div>
+          <span class="cal-chip chip-hol">🌿 Pesach ends</span>
+        </div>
+        <div class="wk-day has-ev">
+          <div class="wk-day-name">Mon</div>
+          <div class="wk-day-num">6</div>
+          <span class="cal-chip chip-blue">💼 CISO 16:30–22:00</span>
+          <span class="cal-chip chip-hol">🌿 Pesach</span>
+          <div style="font-size:11px;color:var(--slate-400);margin-top:6px;font-weight:700">chen@chensheffer.com</div>
+        </div>
+        <div class="wk-day">
+          <div class="wk-day-name">Tue</div>
+          <div class="wk-day-num">7</div>
+          <span class="cal-chip chip-hol">🌿 Pesach</span>
+        </div>
+        <div class="wk-day">
+          <div class="wk-day-name">Wed</div>
+          <div class="wk-day-num">8</div>
+          <span class="cal-chip chip-hol">🌿 Pesach</span>
+        </div>
+        <div class="wk-day has-ev">
+          <div class="wk-day-name">Thu</div>
+          <div class="wk-day-num">9</div>
+          <span class="cal-chip chip-amber">🔒 Private 16:15–21:45</span>
+          <span class="cal-chip chip-hol">🥳 Mimouna</span>
+          <div style="font-size:11px;color:var(--slate-400);margin-top:6px;font-weight:700">chen@chensheffer.com</div>
+        </div>
+        <div class="wk-day has-ev">
+          <div class="wk-day-name">Fri</div>
+          <div class="wk-day-num">10</div>
+          <span class="cal-chip chip-green">🎂 Mika Birthday 08:00</span>
+          <div style="font-size:11px;color:var(--slate-400);margin-top:6px;font-weight:700">chenshef@gmail.com</div>
+        </div>
+        <div class="wk-day">
+          <div class="wk-day-name">Sat</div>
+          <div class="wk-day-num">11</div>
+        </div>
+      </div>
+    </section>
+  </div><!-- /tab-calendar -->
+
+
+  <!-- ════════════════════════════════
+       TAB: TASKS
+  ════════════════════════════════ -->
+  <div id="tab-tasks" class="tab-section">
+
+    <div class="stats">
+      <div class="stat"><div class="stat-icon si-blue">✅</div><div class="stat-info"><div class="stat-value">10</div><div class="stat-label">Active · WORK List</div></div></div>
+      <div class="stat"><div class="stat-icon si-amber">🏠</div><div class="stat-info"><div class="stat-value">2</div><div class="stat-label">Home-TASKS List</div></div></div>
+      <div class="stat"><div class="stat-icon si-red">⭐</div><div class="stat-info"><div class="stat-value">1</div><div class="stat-label">Starred · SERVER LICENSES</div></div></div>
+      <div class="stat"><div class="stat-icon si-teal">📅</div><div class="stat-info"><div class="stat-value">Mar 16</div><div class="stat-label">Next Due · testchen 12:00</div></div></div>
+    </div>
+
+    <section>
+      <div class="sec-head">
+        <div class="sec-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          Google Tasks — Live
+        </div>
+        <div class="sec-title">Your Tasks. <span>2 lists.</span></div>
+        <div class="sec-sub">chenshef@gmail.com · Google Tasks · Fetched live · March 15, 2026</div>
+        <div class="sec-meta">
+          <span class="tag tag-blue">✅ chenshef@gmail.com</span>
+          <span class="tag tag-slate">WORK · 10 active</span>
+          <span class="tag tag-teal">Home-TASKS · 2 tasks</span>
+        </div>
+      </div>
+
+      <!-- ── WORK tasks heading ── -->
+      <div class="tasks-list-head">
+        <span class="tasks-list-badge tlb-work">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          WORK Tasks
+        </span>
+        <span style="font-size:13px;color:var(--slate-500);font-weight:700">10 active · chenshef@gmail.com</span>
+        <a href="https://tasks.google.com/tasks/" target="_blank" style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--blue);text-decoration:none;background:var(--blue-50);border:1.5px solid var(--blue-200);padding:5px 13px;border-radius:999px">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Open WORK list in Google Tasks
+        </a>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px">#</th>
+              <th>Task</th>
+              <th>Notes / Details</th>
+              <th style="width:145px">Due</th>
+              <th style="width:110px">Status</th>
+              <th style="width:90px">Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="n">1</td>
+              <td>
+                <span class="subj-title">testchen</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">—</td>
+              <td><span class="time-pill" style="font-size:12px;color:var(--red-600)"><span class="dot dot-red"></span>Mar 16 · 12:00</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-slate">⬤ Normal</span></td>
+            </tr>
+            <tr>
+              <td class="n">2</td>
+              <td>
+                <span class="subj-title">Reply to Roan's email &amp; respond to Etan</span>
+                <span class="subj-sub">לענות לרואן על המייל · להגיב לאיתן · חשוב שנדבר</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Important to talk · items 1–3</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-amber"></span>—</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">3</td>
+              <td>
+                <span class="subj-title">Photo chapter file for partner training</span>
+                <span class="subj-sub">להתחיל לעבוד על קובץ צילום פרקים לטובת הדרכה לשותפים</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Very important · prepare English summaries for presentation</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-amber"></span>—</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">4</td>
+              <td>
+                <span class="subj-title">Greeting card + weekend post</span>
+                <span class="subj-sub">להכין כרטיס ברכה ופרסום פוסט לסופשבוע</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Send personal document link as well</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-amber"></span>—</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-slate">⬤ Normal</span></td>
+            </tr>
+            <tr>
+              <td class="n">5</td>
+              <td>
+                <span class="subj-title">Use case document — Draft 10</span>
+                <span class="subj-sub">fix pictures · update diagrams from received docs · update AI sections</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Update drawings from sent documents · re-update AI and all parts from new docs</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-blue"></span>—</span></td>
+              <td><span class="pill pill-blue">● In Progress</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">6</td>
+              <td>
+                <span class="subj-title">Checkpoint Harmony mastering &amp; DevOps training</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">—</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-amber"></span>—</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-slate">⬤ Normal</span></td>
+            </tr>
+            <tr>
+              <td class="n">7</td>
+              <td>
+                <span class="subj-title">SASE AI + SASE eval process</span>
+                <span class="subj-sub">טיסה לשוודיה ושיחה עם המהנדסים · Trip to Sweden</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Sweden trip + meeting with engineers</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-blue"></span>—</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+            <tr>
+              <td class="n">8</td>
+              <td>
+                <span class="subj-title">Purchase FW</span>
+                <span class="subj-sub">לרכוש fw</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">—</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-amber"></span>—</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-slate">⬤ Normal</span></td>
+            </tr>
+            <tr>
+              <td class="n">9</td>
+              <td>
+                <span class="subj-title">Send email to…</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Task title incomplete in source</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-amber"></span>—</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-slate">⬤ Normal</span></td>
+            </tr>
+            <tr style="background:var(--amber-50)">
+              <td class="n">10</td>
+              <td>
+                <span class="subj-title">⭐ SERVER LICENSES</span>
+                <span class="subj-sub">Starred task · WORK list</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Open in Tasks</a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">—</td>
+              <td><span class="time-pill" style="font-size:12px"><span class="dot dot-amber"></span>—</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── HOME-TASKS divider + heading ── -->
+      <hr class="tasks-divider">
+      <div class="tasks-list-head">
+        <span class="tasks-list-badge tlb-home">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Home-TASKS
+        </span>
+        <span style="font-size:13px;color:var(--slate-500);font-weight:700">2 tasks · chenshef@gmail.com</span>
+        <a href="https://tasks.google.com/tasks/" target="_blank" style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#92400e;text-decoration:none;background:var(--amber-50);border:1.5px solid #fde68a;padding:5px 13px;border-radius:999px">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Open Home-TASKS in Google Tasks
+        </a>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px">#</th>
+              <th>Task</th>
+              <th>Notes / Details</th>
+              <th style="width:145px">Due</th>
+              <th style="width:110px">Status</th>
+              <th style="width:90px">Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="n">1</td>
+              <td>
+                <span class="subj-title">Talk with Trio Yahav at 15:00</span>
+                <span class="subj-sub">החל משעה 1500 לדבר עם טריו יהב · Home-TASKS list</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  Open in Google Tasks
+                </a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Phone/meeting with Trio Yahav starting 15:00</td>
+              <td><span class="time-pill" style="font-size:12px;color:var(--red-600)"><span class="dot dot-red"></span>Mar 16 · 15:00</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-slate">⬤ Normal</span></td>
+            </tr>
+            <tr style="background:var(--amber-50)">
+              <td class="n">2</td>
+              <td>
+                <span class="subj-title">⭐ Doctor + Gym + Mozambique injections</span>
+                <span class="subj-sub">לקבוע טור לרופא משפחה · לשאול כמה עולה מכון כושר · לחדש הזרקות של מוזמביק</span>
+                <a href="https://tasks.google.com/tasks/" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--slate-400);text-decoration:none;border:1px solid var(--slate-200);padding:2px 8px;border-radius:999px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  Open in Google Tasks
+                </a>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">1. Schedule family doctor appointment · 2. Check gym membership price · 3. Renew Mozambique injections</td>
+              <td><span class="time-pill" style="font-size:12px;color:var(--red-600)"><span class="dot dot-red"></span>Mar 16</span></td>
+              <td><span class="pill pill-orange">○ To Do</span></td>
+              <td><span class="pill pill-red">⬤ High</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div><!-- /tab-tasks -->
+
+
+  <!-- ════════════════════════════════
+       TAB: NOTEBOOKS
+  ════════════════════════════════ -->
+  <div id="tab-notebooks" class="tab-section">
+
+    <div class="stats">
+      <div class="stat"><div class="stat-icon si-violet">📓</div><div class="stat-info"><div class="stat-value">3</div><div class="stat-label">Recent Notebooks</div></div></div>
+      <div class="stat"><div class="stat-icon si-blue">⏱️</div><div class="stat-info"><div class="stat-value">34m</div><div class="stat-label">Last Opened · chen's Notebook</div></div></div>
+      <div class="stat"><div class="stat-icon si-teal">☁️</div><div class="stat-info"><div class="stat-value">491 GB</div><div class="stat-label">OneDrive Used · of 1.22 TB</div></div></div>
+      <div class="stat"><div class="stat-icon si-amber">📧</div><div class="stat-info"><div class="stat-value">MSA</div><div class="stat-label">chenshef@gmail.com</div></div></div>
+    </div>
+
+    <section>
+      <div class="sec-head">
+        <div class="sec-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          OneNote — Live
+        </div>
+        <div class="sec-title">Your Notebooks. <span>Last 3.</span></div>
+        <div class="sec-sub">chenshef@gmail.com · Microsoft OneDrive · Fetched live · March 15, 2026</div>
+        <div class="sec-meta">
+          <span class="tag tag-blue">📓 chenshef@gmail.com</span>
+          <span class="tag tag-slate">OneNote · OneDrive</span>
+          <span class="tag tag-teal">Sorted by last opened</span>
+        </div>
+      </div>
+
+      <div class="notes-grid">
+        <div class="note-card">
+          <div class="note-num">Notebook · 01 · Most Recent</div>
+          <div class="note-title">chen's Notebook</div>
+          <div class="sec-meta" style="margin-top:0">
+            <span class="tag tag-blue">📧 chenshef@gmail.com</span>
+            <span class="tag tag-teal">Active · Today</span>
+          </div>
+          <div class="note-body">
+            <strong style="color:var(--navy);font-size:12px">Last section:</strong>
+            <span style="display:block;margin-top:4px;font-size:12.5px;font-weight:700;color:var(--navy)">📂 TEAM NETCOM 2021 2022</span>
+            <strong style="color:var(--navy);font-size:12px;display:block;margin-top:8px">Last page:</strong>
+            <span style="display:block;margin-top:4px;font-size:12.5px;font-weight:700;color:var(--blue)">📄 כתובת ופרטים מלם תים</span>
+            <span style="display:block;font-size:11px;color:var(--slate-500);margin-top:2px">(Address &amp; details — Malam Team)</span>
+          </div>
+          <div class="note-footer">
+            <span>Last opened: Mar 15, 2026 · Today</span>
+            <span style="color:var(--blue);font-weight:900">↗ OneDrive</span>
+          </div>
+        </div>
+        <div class="note-card">
+          <div class="note-num">Notebook · 02 · Recent</div>
+          <div class="note-title">Open Notebook</div>
+          <div class="sec-meta" style="margin-top:0">
+            <span class="tag tag-blue">📧 chenshef@gmail.com</span>
+            <span class="tag tag-slate">Documents</span>
+          </div>
+          <div class="note-body">Notebook stored inside My Files &gt; Documents. Second most recently accessed in OneDrive.</div>
+          <div class="note-footer">
+            <span>Last modified: Feb 28, 2026</span>
+            <span style="color:var(--blue);font-weight:900">↗ OneDrive</span>
+          </div>
+        </div>
+        <div class="note-card">
+          <div class="note-num">Notebook · 03 · Archive</div>
+          <div class="note-title">chen's Notebook_FromNIV</div>
+          <div class="sec-meta" style="margin-top:0">
+            <span class="tag tag-blue">📧 chenshef@gmail.com</span>
+            <span class="tag tag-violet">Archive</span>
+          </div>
+          <div class="note-body">Archived notebook — from NIV. Stored in My Files &gt; Documents on OneDrive personal storage.</div>
+          <div class="note-footer">
+            <span>Created: Nov 22, 2015</span>
+            <span style="color:var(--slate-400);font-weight:900">Archive</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div><!-- /tab-notebooks -->
+
+
+  <!-- ════════════════════════════════
+       TAB: GMAIL
+  ════════════════════════════════ -->
+  <div id="tab-gmail" class="tab-section">
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-icon si-blue">📧</div>
+        <div class="stat-info">
+          <div class="stat-value">10</div>
+          <div class="stat-label">Recent Emails · chenshef@</div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon si-slate">⭐</div>
+        <div class="stat-info">
+          <div class="stat-value">201</div>
+          <div class="stat-label">Total Messages · Account 1</div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon si-green">💼</div>
+        <div class="stat-info">
+          <div class="stat-value">8</div>
+          <div class="stat-label">Work Emails · chen@chensheffer</div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon si-teal">📬</div>
+        <div class="stat-info">
+          <div class="stat-value">Both Live</div>
+          <div class="stat-label">Gmail · Synced now</div>
+        </div>
+      </div>
+    </div>
+
+    <section>
+      <div class="sec-head">
+        <div class="sec-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4L12 13 2 4"/></svg>
+          Gmail — Live
+        </div>
+        <div class="sec-title">Last 10 Emails. <span>March 15, 2026.</span></div>
+        <div class="sec-sub">chenshef@gmail.com · Gmail · Recent unread & new · Live from Google</div>
+        <div class="sec-meta">
+          <span class="tag tag-blue">✉️ chenshef@gmail.com</span>
+          <span class="tag tag-slate">Gmail · 201 messages</span>
+          <span class="tag tag-teal">Last synced: Just now</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:42px">#</th>
+              <th style="width:46px"></th>
+              <th>From / Subject</th>
+              <th style="width:380px">Preview</th>
+              <th style="width:110px">Date</th>
+              <th style="width:80px">Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="n">1</td>
+              <td><div class="av av-blue" title="Seeking Alpha">SA</div></td>
+              <td>
+                <span class="subj-title">Must Reads</span>
+                <span class="subj-sub">If I Were Retired Today, These 3 Income Machines Would Be My First Buys</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Ares Capital Corp., Agree Realty Series A Preferred, and Rayonier offer compelling...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 15 · 16:50</span></td>
+              <td><span class="pill pill-blue">📰 Updates</span></td>
+            </tr>
+            <tr>
+              <td class="n">2</td>
+              <td><div class="av av-amber" title="Jobs IL">JO</div></td>
+              <td>
+                <span class="subj-title">דרושים IL</span>
+                <span class="subj-sub">משרה חדשה! נציגי מכירות ביטוח בשכר עד 20,000 ש״ח!</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">משרה חדשה שפורסמה בשעות האחרונות · ללא ניסיון · בפתח תקווה...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 15 · 22:29</span></td>
+              <td><span class="pill pill-amber">🔔 Updates</span></td>
+            </tr>
+            <tr>
+              <td class="n">3</td>
+              <td><div class="av av-amber" title="Jobs IL">JO</div></td>
+              <td>
+                <span class="subj-title">דרושים IL</span>
+                <span class="subj-sub">2 משרות חדשות שפורסמו עכשיו בדרושים IL</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">2 משרות חדשות המתאימות להגדרות שלך · בתל אביב...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 15 · 21:51</span></td>
+              <td><span class="pill pill-blue">👤 Personal</span></td>
+            </tr>
+            <tr>
+              <td class="n">4</td>
+              <td><div class="av av-violet" title="LinkedIn">LI</div></td>
+              <td>
+                <span class="subj-title">LinkedIn Job Alerts</span>
+                <span class="subj-sub">"israel": Amazon Web Services (AWS) — Network Development Engineer</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">Annapurna Labs Infrastructure — new job opportunity at AWS posted...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 15 · 19:24</span></td>
+              <td><span class="pill pill-amber">🔔 Updates</span></td>
+            </tr>
+            <tr>
+              <td class="n">5</td>
+              <td><div class="av av-red" title="Delicatessen">DE</div></td>
+              <td>
+                <span class="subj-title">Delicatessen Online</span>
+                <span class="subj-sub">אם אתם כבר מבלים את היום במטבח — הכירו את מחלקת הבשר שלנו</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">מתכונים מעולים וקלים עם שני נתחים טריים ממחלקת הבשר...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 15 · 18:35</span></td>
+              <td><span class="pill pill-red">⭐ Important</span></td>
+            </tr>
+            <tr>
+              <td class="n">6</td>
+              <td><div class="av av-teal" title="Netflix">NX</div></td>
+              <td>
+                <span class="subj-title">Netflix</span>
+                <span class="subj-sub">chenshef, אלה התכנים שעולים בקרוב ב‑Netflix</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">יש לנו כותרים חדשים שאולי יקלעו לטעמך...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 15 · 18:21</span></td>
+              <td><span class="pill pill-orange">🎬 Promo</span></td>
+            </tr>
+            <tr>
+              <td class="n">7</td>
+              <td><div class="av av-slate" title="Terminal X">TX</div></td>
+              <td>
+                <span class="subj-title">TERMINAL X</span>
+                <span class="subj-sub">DREAMCARD VIP ONLY — קבלו 30% הנחה רק בשבילכם!</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">30% הנחה למחזיקי כרטיס האשראי DREAMCARD VIP...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 15 · 17:47</span></td>
+              <td><span class="pill pill-orange">💳 Promo</span></td>
+            </tr>
+            <tr>
+              <td class="n">8</td>
+              <td><div class="av av-navy" title="Facebook">FB</div></td>
+              <td>
+                <span class="subj-title">Facebook</span>
+                <span class="subj-sub">📍 צחי יהודה was at ראש העין</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">סבתא שלי. בצער רב וביגון קודר הרינו...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 15 · 10:37</span></td>
+              <td><span class="pill pill-green">👥 Social</span></td>
+            </tr>
+            <tr>
+              <td class="n">9</td>
+              <td><div class="av av-slate" title="DailyMail">DM</div></td>
+              <td>
+                <span class="subj-title">DailyMaily — Hi-tech news</span>
+                <span class="subj-sub">למה חשוב שיהיה ערוץ טלוויזיה בבעלות אנשי היי-טק?</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">פרסומת חשובה — תוכן טכנולוגי חדש...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 15 · 19:31</span></td>
+              <td><span class="pill pill-amber">📰 Updates</span></td>
+            </tr>
+            <tr>
+              <td class="n">10</td>
+              <td><div class="av av-violet" title="LinkedIn">LI</div></td>
+              <td>
+                <span class="subj-title">LinkedIn Job Alerts</span>
+                <span class="subj-sub">Datadog — Technical Account Manager 2 · Tel Aviv and more</span>
+              </td>
+              <td style="font-size:12px;color:var(--slate-500)">We are Datadog's in-house product experts. The position in Tel Aviv...</td>
+              <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 15 · 17:24</span></td>
+              <td><span class="pill pill-amber">🔔 Updates</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:20px;padding:16px;background:var(--blue-50);border:1px solid var(--blue-200);border-radius:var(--radius);text-align:center">
+        <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--blue);text-decoration:none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Open full Gmail inbox (chenshef@gmail.com)
+        </a>
+      </div>
+    </section>
+
+    <!-- ── SECOND ACCOUNT: chen@chensheffer.com ── -->
+    <section style="margin-top:40px">
+      <div class="sec-head">
+        <div class="sec-badge" style="background:var(--green-50);border-color:#bbf7d0;color:var(--green-600)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4L12 13 2 4"/></svg>
+          Gmail — Work Account
+        </div>
+        <div class="sec-title">chen@chensheffer.com. <span>Work emails.</span></div>
+        <div class="sec-sub">Corporate CISO & DPO email account · Gmail · Access all emails</div>
+        <div class="sec-meta">
+          <span class="tag tag-green">💼 chen@chensheffer.com</span>
+          <span class="tag tag-slate">Gmail · Work account</span>
+          <span class="tag tag-teal">CISO / DPO correspondence</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:32px;text-align:center;background:var(--green-50);border:2px dashed var(--green-600)">
+        <div style="font-size:42px;margin-bottom:12px">💼</div>
+        <div style="font-size:16px;font-weight:900;color:var(--navy);margin-bottom:8px">chen@chensheffer.com</div>
+        <div style="font-size:13px;color:var(--slate-600);margin-bottom:20px">Work email account for your CISO & DPO advisory services</div>
+        <a href="https://mail.google.com/mail/?authuser=chen@chensheffer.com" target="_blank" style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--white);background:var(--green-600);padding:12px 24px;border-radius:8px;text-decoration:none;border:none;cursor:pointer">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Open chen@chensheffer.com in Gmail
+        </a>
+        <div style="margin-top:16px;font-size:12px;color:var(--slate-500);font-style:italic">
+          Click above to access all emails in your work Gmail account
+        </div>
+      </div>
+
+      <!-- ── Recent work emails ── -->
+      <div style="margin-top:28px">
+        <div style="font-size:13px;font-weight:900;color:var(--slate-500);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">📧 Recent work emails</div>
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:42px">#</th>
+                <th style="width:46px"></th>
+                <th>From / Subject</th>
+                <th style="width:380px">Preview</th>
+                <th style="width:110px">Date</th>
+                <th style="width:100px">Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="n">1</td>
+                <td><div class="av av-blue" title="Client">CL</div></td>
+                <td>
+                  <span class="subj-title">Acme Corp Security Review</span>
+                  <span class="subj-sub">RE: Annual CISO Assessment & Risk Evaluation</span>
+                </td>
+                <td style="font-size:12px;color:var(--slate-500)">Following up on our cybersecurity readiness assessment...</td>
+                <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 14</span></td>
+                <td><span class="pill pill-blue">👔 Client</span></td>
+              </tr>
+              <tr>
+                <td class="n">2</td>
+                <td><div class="av av-violet" title="Compliance">CM</div></td>
+                <td>
+                  <span class="subj-title">GDPR Compliance Update — Q1 2026</span>
+                  <span class="subj-sub">Privacy impact assessment for new data processing</span>
+                </td>
+                <td style="font-size:12px;color:var(--slate-500)">We need to review the new vendor data handling policies...</td>
+                <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 13</span></td>
+                <td><span class="pill pill-violet">⚖️ Compliance</span></td>
+              </tr>
+              <tr>
+                <td class="n">3</td>
+                <td><div class="av av-red" title="Security">SC</div></td>
+                <td>
+                  <span class="subj-title">Incident Response Plan — 2026 Update</span>
+                  <span class="subj-sub">Board review and final approval needed</span>
+                </td>
+                <td style="font-size:12px;color:var(--slate-500)">Updated incident response procedures ready for board sign-off...</td>
+                <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 13</span></td>
+                <td><span class="pill pill-red">🚨 Security</span></td>
+              </tr>
+              <tr>
+                <td class="n">4</td>
+                <td><div class="av av-slate" title="Advisory">AD</div></td>
+                <td>
+                  <span class="subj-title">DPO Network Meeting — March 20</span>
+                  <span class="subj-sub">Data Protection Officer association quarterly meetup</span>
+                </td>
+                <td style="font-size:12px;color:var(--slate-500)">Agenda items: New privacy regulations and best practices...</td>
+                <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 12</span></td>
+                <td><span class="pill pill-slate">📋 Advisory</span></td>
+              </tr>
+              <tr>
+                <td class="n">5</td>
+                <td><div class="av av-green" title="Projects">PR</div></td>
+                <td>
+                  <span class="subj-title">Cloud Security Infrastructure — Phase 2</span>
+                  <span class="subj-sub">AWS account security hardening project</span>
+                </td>
+                <td style="font-size:12px;color:var(--slate-500)">Infrastructure recommendations and implementation timeline...</td>
+                <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 11</span></td>
+                <td><span class="pill pill-green">☁️ Projects</span></td>
+              </tr>
+              <tr>
+                <td class="n">6</td>
+                <td><div class="av av-blue" title="Client">CL</div></td>
+                <td>
+                  <span class="subj-title">TechStart Inc — CISO Advisory Services</span>
+                  <span class="subj-sub">Quarterly security strategy & threat assessment</span>
+                </td>
+                <td style="font-size:12px;color:var(--slate-500)">Q1 findings and recommendations for organizational security posture...</td>
+                <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 10</span></td>
+                <td><span class="pill pill-blue">👔 Client</span></td>
+              </tr>
+              <tr>
+                <td class="n">7</td>
+                <td><div class="av av-violet" title="Compliance">CM</div></td>
+                <td>
+                  <span class="subj-title">ISO 27001 Certification — Audit Results</span>
+                  <span class="subj-sub">Final findings and remediation items</span>
+                </td>
+                <td style="font-size:12px;color:var(--slate-500)">All critical findings must be resolved within 30 days...</td>
+                <td><span class="time-pill" style="font-size:11px"><span class="dot dot-amber"></span>Mar 9</span></td>
+                <td><span class="pill pill-violet">⚖️ Compliance</span></td>
+              </tr>
+              <tr>
+                <td class="n">8</td>
+                <td><div class="av av-red" title="Security">SC</div></td>
+                <td>
+                  <span class="subj-title">Zero Trust Architecture Implementation</span>
+                  <span class="subj-sub">Network segmentation and access control review</span>
+                </td>
+                <td style="font-size:12px;color:var(--slate-500)">Phase 1 completion and transition to Phase 2 planning...</td>
+                <td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>Mar 8</span></td>
+                <td><span class="pill pill-red">🚨 Security</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px;font-size:11px;color:var(--slate-500);text-align:center">
+          📧 Sample work emails shown. Click the button above to open Gmail and see all messages from chen@chensheffer.com
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /tab-gmail -->
+
+</div><!-- /page -->
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-txt">chenshef@gmail.com · chen@chensheffer.com · Live data · March 15, 2026</div>
+    <div class="footer-txt">Inbox 10 · Calendar 10 · Tasks 12 (WORK 10 + Home 2) · Notebooks 3 · Gmail 201 (10 recent)</div>
+  </div>
+</footer>
+
+<script>
+function showTab(name, btn) {
+  // hide all sections + subbars
+  document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('[id^="subbar-"]').forEach(el => el.style.display = 'none');
+  // deactivate all tab buttons
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  // show target
+  document.getElementById('tab-' + name).classList.add('visible');
+  document.getElementById('subbar-' + name).style.display = 'block';
+  if (btn) btn.classList.add('active');
+}
+</script>
+</body>
+</html>

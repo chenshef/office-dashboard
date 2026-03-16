@@ -8,7 +8,7 @@ export default function LoginPage() {
 
   const handleSignIn = async () => {
     await signIn('google', {
-      callbackUrl: '/dashboard',
+      callbackUrl: '/verify-totp',
     })
   }
 
