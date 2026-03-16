@@ -200,8 +200,10 @@ footer{border-top:1px solid var(--slate-200);background:var(--white);padding:20p
 .wk-day{padding:14px 11px;border-right:1px solid var(--slate-100);min-height:130px}
 .wk-day:last-child{border-right:none}
 .wk-day.has-ev{background:var(--blue-50)}
+.wk-day.wk-today{background:var(--blue-50);border-top:3px solid var(--blue)}
 .wk-day-name{font-size:10px;font-weight:900;color:var(--slate-400);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
 .wk-day-num{font-size:26px;font-weight:900;color:var(--navy);margin-bottom:8px;line-height:1}
+.chip-navy{background:#e8edf7;border:1px solid #c7d2e8;color:var(--navy)}
 /* Tasks section split */
 .tasks-list-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .tasks-list-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 18px;border-radius:999px;font-size:13px;font-weight:900}
@@ -593,56 +595,33 @@ footer{border-top:1px solid var(--slate-200);background:var(--white);padding:20p
       </div>
     </section>
 
-    <!-- ══ UPCOMING WEEK STRIP ══ -->
+    <!-- ══ THIS WEEK — LIVE ══ -->
     <section>
       <div class="sec-head">
         <div class="sec-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Upcoming Week — Apr 5–11
+          This Week — Live
         </div>
-        <div class="sec-title">Week View. <span>Apr 5–11, 2026.</span></div>
-        <div class="sec-sub">First active week in April · 3 events</div>
+        <div class="sec-title" id="cal-week-title">Week View. <span>Loading…</span></div>
+        <div class="sec-sub" id="cal-sync-status">Loading calendar…</div>
+        <button id="sync-cal-btn" onclick="syncCalendar()" style="margin-top:8px;display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff;font-size:12px;font-weight:800;padding:8px 18px;border-radius:999px;border:none;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 2px 8px rgba(13,148,136,.3)">
+          <svg id="cal-sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          Sync Calendar Now
+        </button>
+        <span id="cal-countdown" style="margin-left:10px;font-size:11px;color:var(--slate-400);font-weight:700"></span>
+        <div class="sec-meta" id="cal-meta">
+          <span class="tag tag-blue">📅 Both calendars</span>
+        </div>
       </div>
-      <div class="week-strip-grid">
-        <div class="wk-day">
-          <div class="wk-day-name">Sun</div>
-          <div class="wk-day-num">5</div>
-          <span class="cal-chip chip-hol">🌿 Pesach ends</span>
-        </div>
-        <div class="wk-day has-ev">
-          <div class="wk-day-name">Mon</div>
-          <div class="wk-day-num">6</div>
-          <span class="cal-chip chip-blue">💼 CISO 16:30–22:00</span>
-          <span class="cal-chip chip-hol">🌿 Pesach</span>
-          <div style="font-size:11px;color:var(--slate-400);margin-top:6px;font-weight:700">chen@chensheffer.com</div>
-        </div>
-        <div class="wk-day">
-          <div class="wk-day-name">Tue</div>
-          <div class="wk-day-num">7</div>
-          <span class="cal-chip chip-hol">🌿 Pesach</span>
-        </div>
-        <div class="wk-day">
-          <div class="wk-day-name">Wed</div>
-          <div class="wk-day-num">8</div>
-          <span class="cal-chip chip-hol">🌿 Pesach</span>
-        </div>
-        <div class="wk-day has-ev">
-          <div class="wk-day-name">Thu</div>
-          <div class="wk-day-num">9</div>
-          <span class="cal-chip chip-amber">🔒 Private 16:15–21:45</span>
-          <span class="cal-chip chip-hol">🥳 Mimouna</span>
-          <div style="font-size:11px;color:var(--slate-400);margin-top:6px;font-weight:700">chen@chensheffer.com</div>
-        </div>
-        <div class="wk-day has-ev">
-          <div class="wk-day-name">Fri</div>
-          <div class="wk-day-num">10</div>
-          <span class="cal-chip chip-green">🎂 Mika Birthday 08:00</span>
-          <div style="font-size:11px;color:var(--slate-400);margin-top:6px;font-weight:700">chenshef@gmail.com</div>
-        </div>
-        <div class="wk-day">
-          <div class="wk-day-name">Sat</div>
-          <div class="wk-day-num">11</div>
-        </div>
+      <div class="week-strip-grid" id="cal-week-grid">
+        <!-- Filled live by syncCalendar() -->
+        <div class="wk-day"><div class="wk-day-name">Sun</div><div class="wk-day-num">—</div></div>
+        <div class="wk-day"><div class="wk-day-name">Mon</div><div class="wk-day-num">—</div></div>
+        <div class="wk-day"><div class="wk-day-name">Tue</div><div class="wk-day-num">—</div></div>
+        <div class="wk-day"><div class="wk-day-name">Wed</div><div class="wk-day-num">—</div></div>
+        <div class="wk-day"><div class="wk-day-name">Thu</div><div class="wk-day-num">—</div></div>
+        <div class="wk-day"><div class="wk-day-name">Fri</div><div class="wk-day-num">—</div></div>
+        <div class="wk-day"><div class="wk-day-name">Sat</div><div class="wk-day-num">—</div></div>
       </div>
     </section>
   </div><!-- /tab-calendar -->
@@ -1349,8 +1328,12 @@ async function syncTasks() {
   try {
     const res = await fetch('/api/tasks');
     if (!res.ok) {
-      const err = await res.json();
-      status.innerHTML = '❌ Sync failed: ' + (err.error || 'Unknown error') + ' · <a href="/api/auth/signin" style="color:var(--blue);font-weight:800">Re-login to grant Tasks permission</a>';
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        status.innerHTML = '❌ Session expired · <a href="/api/auth/signin" style="color:var(--blue);font-weight:800">Re-login to refresh</a>';
+      } else {
+        status.innerHTML = '❌ Sync failed: ' + (err.error || 'Unknown error') + ' · <a href="/api/auth/signin" style="color:var(--blue);font-weight:800">Re-login</a>';
+      }
       return;
     }
     const data = await res.json();
@@ -1496,6 +1479,151 @@ if (!syncInterval) {
 const styleSheet = document.createElement('style');
 styleSheet.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
 document.head.appendChild(styleSheet);
+
+/* ── Calendar Live Sync ── */
+let calCountdownInterval = null;
+let calNextSyncTime = null;
+
+async function syncCalendar() {
+  const btn = document.getElementById('sync-cal-btn');
+  const icon = document.getElementById('cal-sync-icon');
+  const status = document.getElementById('cal-sync-status');
+  const title = document.getElementById('cal-week-title');
+
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  icon.style.animation = 'spin 1s linear infinite';
+
+  try {
+    const res = await fetch('/api/calendar');
+    if (!res.ok) {
+      const err = await res.json();
+      if (err.needsReauth) {
+        status.innerHTML = '❌ Session expired · <a href="/api/auth/signin" style="color:var(--blue);font-weight:800">Re-login to refresh</a>';
+      } else {
+        status.innerHTML = '❌ Calendar sync failed: ' + (err.error || 'Unknown error') + ' · <a href="/api/auth/signin" style="color:var(--blue);font-weight:800">Re-login</a>';
+      }
+      return;
+    }
+    const data = await res.json();
+
+    /* Format week label */
+    const ws = new Date(data.weekStart);
+    const we = new Date(data.weekEnd);
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const wLabel = monthNames[ws.getMonth()] + ' ' + ws.getDate() + '–' + we.getDate() + ', ' + ws.getFullYear();
+
+    title.innerHTML = 'This Week. <span>' + wLabel + '</span>';
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+    const dateStr = now.toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+    status.textContent = data.email + ' · Google Calendar · Synced live · ' + dateStr + ' at ' + timeStr;
+
+    /* Update meta */
+    const meta = document.getElementById('cal-meta');
+    if (meta && data.calendars) {
+      const calTags = data.calendars.slice(0,4).map(c =>
+        '<span class="tag tag-slate">📅 ' + escHtml(c.name) + '</span>'
+      ).join('');
+      meta.innerHTML = '<span class="tag tag-blue">✅ ' + escHtml(data.email) + '</span>' + calTags +
+        '<span class="tag tag-teal">' + data.events.length + ' events this week</span>';
+    }
+
+    /* Build week grid */
+    renderCalendarWeek(data.events, ws);
+
+    /* Start countdown */
+    startCalCountdown();
+
+  } catch (e) {
+    status.textContent = '❌ Network error — check connection';
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    icon.style.animation = '';
+  }
+}
+
+function renderCalendarWeek(events, weekStart) {
+  const grid = document.getElementById('cal-week-grid');
+  if (!grid) return;
+
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    days.push(d);
+  }
+
+  /* Group events by day-of-week */
+  const byDay = [[], [], [], [], [], [], []];
+  events.forEach(ev => {
+    const evDate = new Date(ev.start);
+    const diff = evDate.getDay();
+    /* Match to correct day in this week */
+    for (let i = 0; i < 7; i++) {
+      if (days[i].toDateString() === evDate.toDateString()) {
+        byDay[i].push(ev);
+        break;
+      }
+    }
+  });
+
+  /* Render */
+  grid.innerHTML = '';
+  const today = new Date();
+  days.forEach((day, i) => {
+    const isToday = day.toDateString() === today.toDateString();
+    const hasEv = byDay[i].length > 0;
+    const div = document.createElement('div');
+    div.className = 'wk-day' + (hasEv ? ' has-ev' : '') + (isToday ? ' wk-today' : '');
+
+    let html = '<div class="wk-day-name">' + dayNames[day.getDay()] + '</div>';
+    html += '<div class="wk-day-num' + (isToday ? '" style="background:var(--blue);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;margin:4px auto' : '') + '">' + day.getDate() + '</div>';
+
+    byDay[i].forEach(ev => {
+      let chipClass = 'chip-blue';
+      if (ev.calendarId && ev.calendarId.includes('chensheffer')) chipClass = 'chip-navy';
+      else if (ev.summary && (ev.summary.toLowerCase().includes('private') || ev.summary.toLowerCase().includes('פרטי'))) chipClass = 'chip-amber';
+
+      const timeStr = ev.allDay ? '' : (' ' + new Date(ev.start).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}));
+      html += '<span class="cal-chip ' + chipClass + '" title="' + escHtml(ev.calendarName || '') + '">' + escHtml(ev.summary.substring(0,22)) + timeStr + '</span>';
+    });
+
+    if (byDay[i].length > 0) {
+      /* Show calendar account label */
+      const calNames = [...new Set(byDay[i].map(e => e.calendarId))];
+      if (calNames.length > 0) {
+        html += '<div style="font-size:10px;color:var(--slate-400);margin-top:6px;font-weight:700">' + escHtml(calNames[0].length > 25 ? calNames[0].substring(0,25)+'…' : calNames[0]) + '</div>';
+      }
+    }
+
+    div.innerHTML = html;
+    grid.appendChild(div);
+  });
+}
+
+function startCalCountdown() {
+  calNextSyncTime = Date.now() + 5 * 60 * 1000;
+  if (calCountdownInterval) clearInterval(calCountdownInterval);
+  calCountdownInterval = setInterval(updateCalCountdown, 1000);
+}
+
+function updateCalCountdown() {
+  const el = document.getElementById('cal-countdown');
+  if (!el || !calNextSyncTime) return;
+  const remaining = Math.max(0, Math.floor((calNextSyncTime - Date.now()) / 1000));
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  el.textContent = '⏱ Next sync in ' + m + ':' + (s < 10 ? '0' : '') + s;
+  if (remaining <= 0) syncCalendar();
+}
+
+/* Auto-sync calendar on load */
+syncCalendar();
 </script>
 </body>
 </html>
