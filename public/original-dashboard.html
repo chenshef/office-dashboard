@@ -667,7 +667,12 @@ footer{border-top:1px solid var(--slate-200);background:var(--white);padding:20p
           Google Tasks — Live
         </div>
         <div class="sec-title">Your Tasks. <span>2 lists.</span></div>
-        <div class="sec-sub">chenshef@gmail.com · Google Tasks · Fetched live · March 15, 2026</div>
+        <div class="sec-sub" id="tasks-sync-status">chenshef@gmail.com · Google Tasks · Fetched live · March 15, 2026</div>
+        <button id="sync-tasks-btn" onclick="syncTasks()" style="margin-top:8px;display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:12px;font-weight:800;padding:8px 18px;border-radius:999px;border:none;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 2px 8px rgba(37,99,235,.3)">
+          <svg id="sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          Sync Tasks Now
+        </button>
+        <span id="sync-countdown" style="margin-left:10px;font-size:11px;color:var(--slate-400);font-weight:700"></span>
         <div class="sec-meta">
           <span class="tag tag-blue">✅ chenshef@gmail.com</span>
           <span class="tag tag-slate">WORK · 10 active</span>
@@ -1326,6 +1331,171 @@ function showTab(name, btn) {
   document.getElementById('subbar-' + name).style.display = 'block';
   if (btn) btn.classList.add('active');
 }
+
+/* ── Tasks Sync ── */
+let syncInterval = null;
+let countdownInterval = null;
+let nextSyncTime = null;
+
+async function syncTasks() {
+  const btn = document.getElementById('sync-tasks-btn');
+  const icon = document.getElementById('sync-icon');
+  const status = document.getElementById('tasks-sync-status');
+
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  icon.style.animation = 'spin 1s linear infinite';
+
+  try {
+    const res = await fetch('/api/tasks');
+    if (!res.ok) {
+      const err = await res.json();
+      status.innerHTML = '❌ Sync failed: ' + (err.error || 'Unknown error') + ' · <a href="/api/auth/signin" style="color:var(--blue);font-weight:800">Re-login to grant Tasks permission</a>';
+      return;
+    }
+    const data = await res.json();
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+    const dateStr = now.toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+
+    status.textContent = data.email + ' · Google Tasks · Synced live · ' + dateStr + ' at ' + timeStr;
+
+    /* Rebuild tasks tables */
+    renderTasks(data);
+
+    /* Reset 5-min countdown */
+    startCountdown();
+
+  } catch (e) {
+    status.textContent = '❌ Network error — check connection';
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    icon.style.animation = '';
+  }
+}
+
+function renderTasks(data) {
+  const tasksSection = document.getElementById('tab-tasks');
+  if (!tasksSection || !data.tasks) return;
+
+  /* Group tasks by list */
+  const grouped = {};
+  data.lists.forEach(l => { grouped[l.title] = []; });
+  data.tasks.forEach(t => {
+    if (!t.title || t.title.trim() === '') return;
+    if (!grouped[t.listName]) grouped[t.listName] = [];
+    grouped[t.listName].push(t);
+  });
+
+  /* Update stat cards */
+  const stats = tasksSection.querySelector('.stats');
+  if (stats) {
+    const totalActive = data.tasks.filter(t => t.title && t.title.trim() !== '').length;
+    const listEntries = Object.entries(grouped);
+    const firstListCount = listEntries[0] ? listEntries[0][1].length : 0;
+    const secondListCount = listEntries[1] ? listEntries[1][1].length : 0;
+    const nextDue = data.tasks.filter(t => t.due).sort((a,b) => new Date(a.due) - new Date(b.due))[0];
+
+    const statDivs = stats.querySelectorAll('.stat');
+    if (statDivs[0]) statDivs[0].querySelector('.stat-value').textContent = firstListCount;
+    if (statDivs[0]) statDivs[0].querySelector('.stat-label').textContent = (listEntries[0] ? listEntries[0][0] : 'List 1') + ' List';
+    if (statDivs[1]) statDivs[1].querySelector('.stat-value').textContent = secondListCount;
+    if (statDivs[1]) statDivs[1].querySelector('.stat-label').textContent = (listEntries[1] ? listEntries[1][0] : 'List 2') + ' List';
+    if (statDivs[3] && nextDue) {
+      const d = new Date(nextDue.due);
+      statDivs[3].querySelector('.stat-value').textContent = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      statDivs[3].querySelector('.stat-label').textContent = 'Next Due · ' + nextDue.title.substring(0,20);
+    }
+  }
+
+  /* Update meta tags */
+  const metaDiv = tasksSection.querySelector('.sec-meta');
+  if (metaDiv) {
+    const listTags = Object.entries(grouped).map(([name, tasks]) =>
+      '<span class="tag tag-slate">' + name + ' · ' + tasks.length + ' active</span>'
+    ).join('');
+    metaDiv.innerHTML = '<span class="tag tag-blue">✅ ' + data.email + '</span>' + listTags;
+  }
+
+  /* Rebuild each list's table */
+  const cards = tasksSection.querySelectorAll('.card');
+  let cardIdx = 0;
+
+  Object.entries(grouped).forEach(([listName, tasks], listIdx) => {
+    if (cardIdx >= cards.length) return;
+    const card = cards[cardIdx];
+    const tbody = card.querySelector('tbody');
+    if (!tbody) { cardIdx++; return; }
+
+    tbody.innerHTML = '';
+    tasks.forEach((t, i) => {
+      const dueDate = t.due ? new Date(t.due) : null;
+      const dueStr = dueDate ? dueDate.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+      const isOverdue = dueDate && dueDate < new Date();
+      const dotClass = isOverdue ? 'dot-red' : (dueDate ? 'dot-blue' : 'dot-amber');
+      const dueStyle = isOverdue ? 'color:var(--red-600)' : '';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="n">' + (i+1) + '</td>' +
+        '<td><span class="subj-title">' + escHtml(t.title) + '</span>' +
+        (t.notes ? '<span class="subj-sub">' + escHtml(t.notes) + '</span>' : '') +
+        '</td>' +
+        '<td style="font-size:12px;color:var(--slate-500)">' + (t.notes ? escHtml(t.notes.substring(0,60)) : '—') + '</td>' +
+        '<td><span class="time-pill" style="font-size:12px;' + dueStyle + '"><span class="dot ' + dotClass + '"></span>' + dueStr + '</span></td>' +
+        '<td><span class="pill ' + (t.status==='completed'?'pill-green':'pill-orange') + '">' + (t.status==='completed'?'✅ Done':'○ To Do') + '</span></td>' +
+        '<td><span class="pill pill-slate">⬤ Normal</span></td>';
+      tbody.appendChild(tr);
+    });
+    cardIdx++;
+  });
+
+  /* Update list headings counts */
+  const headings = tasksSection.querySelectorAll('.tasks-list-head');
+  let hIdx = 0;
+  Object.entries(grouped).forEach(([listName, tasks]) => {
+    if (hIdx >= headings.length) return;
+    const countSpan = headings[hIdx].querySelector('span[style*="font-size:13px"]');
+    if (countSpan) countSpan.textContent = tasks.length + ' active · ' + data.email;
+    hIdx++;
+  });
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function startCountdown() {
+  nextSyncTime = Date.now() + 5 * 60 * 1000;
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(updateCountdown, 1000);
+}
+
+function updateCountdown() {
+  const el = document.getElementById('sync-countdown');
+  if (!el || !nextSyncTime) return;
+  const remaining = Math.max(0, Math.floor((nextSyncTime - Date.now()) / 1000));
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  el.textContent = '⏱ Next auto-sync in ' + m + ':' + (s < 10 ? '0' : '') + s;
+
+  if (remaining <= 0) {
+    syncTasks();
+  }
+}
+
+/* Start auto-sync every 5 minutes */
+if (!syncInterval) {
+  startCountdown();
+}
+
+/* Add spin animation */
+const styleSheet = document.createElement('style');
+styleSheet.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+document.head.appendChild(styleSheet);
 </script>
 </body>
 </html>
