@@ -1000,16 +1000,20 @@ footer{border-top:1px solid var(--slate-200);background:var(--white);padding:20p
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4L12 13 2 4"/></svg>
           Gmail — Live
         </div>
-        <div class="sec-title">Last 10 Emails. <span>March 15, 2026.</span></div>
-        <div class="sec-sub">chenshef@gmail.com · Gmail · Recent unread & new · Live from Google</div>
-        <div class="sec-meta">
+        <div class="sec-title">Last 10 Emails. <span id="gmail-title-sub">Loading…</span></div>
+        <div class="sec-sub" id="gmail-sync-status">Connecting to Gmail…</div>
+        <button id="sync-gmail-btn" onclick="syncGmail()" style="margin-top:8px;display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;font-size:12px;font-weight:800;padding:8px 18px;border-radius:999px;border:none;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 2px 8px rgba(220,38,38,.3)">
+          <svg id="gmail-sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          Sync Gmail Now
+        </button>
+        <span id="gmail-countdown" style="margin-left:10px;font-size:11px;color:var(--slate-400);font-weight:700"></span>
+        <div class="sec-meta" id="gmail-meta">
           <span class="tag tag-blue">✉️ chenshef@gmail.com</span>
-          <span class="tag tag-slate">Gmail · 201 messages</span>
-          <span class="tag tag-teal">Last synced: Just now</span>
+          <span class="tag tag-slate">Gmail · Loading…</span>
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="gmail-card">
         <table>
           <thead>
             <tr>
@@ -1017,11 +1021,11 @@ footer{border-top:1px solid var(--slate-200);background:var(--white);padding:20p
               <th style="width:46px"></th>
               <th>From / Subject</th>
               <th style="width:380px">Preview</th>
-              <th style="width:110px">Date</th>
-              <th style="width:80px">Category</th>
+              <th style="width:130px">Date</th>
+              <th style="width:80px">Status</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="gmail-tbody">
             <tr>
               <td class="n">1</td>
               <td><div class="av av-blue" title="Seeking Alpha">SA</div></td>
@@ -1293,8 +1297,13 @@ footer{border-top:1px solid var(--slate-200);background:var(--white);padding:20p
 <!-- ══ FOOTER ══ -->
 <footer>
   <div class="footer-inner">
-    <div class="footer-txt">chenshef@gmail.com · chen@chensheffer.com · Live data · March 15, 2026</div>
-    <div class="footer-txt">Inbox 10 · Calendar 10 · Tasks 12 (WORK 10 + Home 2) · Notebooks 3 · Gmail 201 (10 recent)</div>
+    <div class="footer-txt" id="footer-accounts">chenshef@gmail.com · chen@chensheffer.com · Live data</div>
+    <div class="footer-txt" id="footer-clock" style="font-family:monospace;font-size:12px;display:flex;gap:18px;align-items:center">
+      <span id="footer-now">🕐 Now: —</span>
+      <span id="footer-last-tasks" style="color:var(--slate-400)">Tasks: —</span>
+      <span id="footer-last-gmail" style="color:var(--slate-400)">Gmail: —</span>
+      <span id="footer-last-cal" style="color:var(--slate-400)">Calendar: —</span>
+    </div>
   </div>
 </footer>
 
@@ -1310,6 +1319,9 @@ function showTab(name, btn) {
   document.getElementById('subbar-' + name).style.display = 'block';
   if (btn) btn.classList.add('active');
 }
+
+/* ── Shared sync timestamps ── */
+let lastSyncTimes = { tasks: null, gmail: null, calendar: null };
 
 /* ── Tasks Sync ── */
 let syncInterval = null;
@@ -1342,6 +1354,8 @@ async function syncTasks() {
     const dateStr = now.toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
 
     status.textContent = data.email + ' · Google Tasks · Synced live · ' + dateStr + ' at ' + timeStr;
+    lastSyncTimes.tasks = now;
+    updateFooterClocks();
 
     /* Rebuild tasks tables */
     renderTasks(data);
@@ -1520,6 +1534,8 @@ async function syncCalendar() {
     const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
     const dateStr = now.toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
     status.textContent = data.email + ' · Google Calendar · Synced live · ' + dateStr + ' at ' + timeStr;
+    lastSyncTimes.calendar = now;
+    updateFooterClocks();
 
     /* Update meta */
     const meta = document.getElementById('cal-meta');
@@ -1624,6 +1640,169 @@ function updateCalCountdown() {
 
 /* Auto-sync calendar on load */
 syncCalendar();
+
+/* ── Gmail Live Sync ── */
+let gmailCountdownInterval = null;
+let gmailNextSyncTime = null;
+
+async function syncGmail() {
+  const btn = document.getElementById('sync-gmail-btn');
+  const icon = document.getElementById('gmail-sync-icon');
+  const status = document.getElementById('gmail-sync-status');
+  const titleSub = document.getElementById('gmail-title-sub');
+  const tbody = document.getElementById('gmail-tbody');
+
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  icon.style.animation = 'spin 1s linear infinite';
+
+  try {
+    const res = await fetch('/api/gmail');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        status.innerHTML = '❌ Session expired · <a href="/api/auth/signin" style="color:#dc2626;font-weight:800">Re-login to refresh</a>';
+      } else {
+        status.innerHTML = '❌ Gmail sync failed: ' + (err.error || 'Unknown error') + ' · <a href="/api/auth/signin" style="color:#dc2626;font-weight:800">Re-login</a>';
+      }
+      return;
+    }
+    const data = await res.json();
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+    const dateStr = now.toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+
+    lastSyncTimes.gmail = now;
+    titleSub.textContent = dateStr;
+    status.textContent = data.email + ' · Gmail · Synced live · ' + dateStr + ' at ' + timeStr;
+    updateFooterClocks();
+
+    /* Update meta */
+    const meta = document.getElementById('gmail-meta');
+    if (meta) {
+      meta.innerHTML = '<span class="tag tag-blue">✉️ ' + escHtml(data.email) + '</span>' +
+        '<span class="tag tag-slate">Gmail · ' + data.messages.length + ' messages fetched</span>' +
+        '<span class="tag tag-teal">Synced at ' + timeStr + '</span>';
+    }
+
+    /* Update stat cards */
+    const gmailTab = document.getElementById('tab-gmail');
+    if (gmailTab) {
+      const statDivs = gmailTab.querySelectorAll('.stat');
+      if (statDivs[0]) {
+        statDivs[0].querySelector('.stat-value').textContent = data.messages.length;
+        statDivs[0].querySelector('.stat-label').textContent = 'Inbox · ' + data.email.split('@')[0];
+      }
+      const unread = data.messages.filter(m => m.isUnread).length;
+      if (statDivs[1]) {
+        statDivs[1].querySelector('.stat-value').textContent = unread;
+        statDivs[1].querySelector('.stat-label').textContent = 'Unread messages';
+      }
+      const starred = data.messages.filter(m => m.isStarred).length;
+      if (statDivs[2]) {
+        statDivs[2].querySelector('.stat-value').textContent = starred;
+        statDivs[2].querySelector('.stat-label').textContent = 'Starred · Important';
+      }
+    }
+
+    /* Render email rows */
+    if (tbody) {
+      tbody.innerHTML = '';
+      data.messages.forEach((msg, i) => {
+        const senderName = extractName(msg.from);
+        const senderInitials = senderName.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase() || '??';
+        const avatarClass = ['av-blue','av-amber','av-violet','av-teal','av-red','av-green'][i % 6];
+        const msgDate = msg.date ? formatEmailDate(new Date(msg.date)) : '—';
+        const isUnread = msg.isUnread;
+
+        const tr = document.createElement('tr');
+        if (isUnread) tr.style.background = 'var(--blue-50)';
+        tr.innerHTML =
+          '<td class="n">' + (i+1) + '</td>' +
+          '<td><div class="av ' + avatarClass + '" title="' + escHtml(senderName) + '">' + escHtml(senderInitials) + '</div></td>' +
+          '<td>' +
+            '<span class="subj-title"' + (isUnread ? ' style="font-weight:900"' : '') + '>' + escHtml(msg.subject || '(No subject)') + '</span>' +
+            '<span class="subj-sub">' + escHtml(senderName) + '</span>' +
+          '</td>' +
+          '<td style="font-size:12px;color:var(--slate-500)">' + escHtml((msg.snippet || '').substring(0, 90)) + '</td>' +
+          '<td><span class="time-pill" style="font-size:11px"><span class="dot ' + (isUnread ? 'dot-blue' : 'dot-amber') + '"></span>' + escHtml(msgDate) + '</span></td>' +
+          '<td>' + (isUnread ? '<span class="pill pill-blue">📬 Unread</span>' : (msg.isStarred ? '<span class="pill pill-amber">⭐ Starred</span>' : '<span class="pill pill-slate">✓ Read</span>')) + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* Start countdown */
+    startGmailCountdown();
+
+  } catch(e) {
+    status.textContent = '❌ Network error — check connection';
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    icon.style.animation = '';
+  }
+}
+
+function extractName(from) {
+  if (!from) return '?';
+  const m = from.match(/^"?([^"<]+)"?\s*<?/);
+  return m ? m[1].trim() : from.split('@')[0];
+}
+
+function formatEmailDate(d) {
+  if (isNaN(d.getTime())) return '—';
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 86400000 && d.getDate() === now.getDate()) {
+    return d.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+  }
+  return d.toLocaleDateString('en-US', {month:'short',day:'numeric'});
+}
+
+function startGmailCountdown() {
+  gmailNextSyncTime = Date.now() + 5 * 60 * 1000;
+  if (gmailCountdownInterval) clearInterval(gmailCountdownInterval);
+  gmailCountdownInterval = setInterval(updateGmailCountdown, 1000);
+}
+
+function updateGmailCountdown() {
+  const el = document.getElementById('gmail-countdown');
+  if (!el || !gmailNextSyncTime) return;
+  const remaining = Math.max(0, Math.floor((gmailNextSyncTime - Date.now()) / 1000));
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  el.textContent = '⏱ Next sync in ' + m + ':' + (s < 10 ? '0' : '') + s;
+  if (remaining <= 0) syncGmail();
+}
+
+/* ── Live footer clock ── */
+function updateFooterClocks() {
+  const nowEl = document.getElementById('footer-now');
+  const tasksEl = document.getElementById('footer-last-tasks');
+  const gmailEl = document.getElementById('footer-last-gmail');
+  const calEl = document.getElementById('footer-last-cal');
+
+  const now = new Date();
+  if (nowEl) nowEl.textContent = '🕐 ' + now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  function ago(t) {
+    if (!t) return 'not yet';
+    const diff = Math.floor((now - t) / 1000);
+    if (diff < 60) return diff + 's ago';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    return Math.floor(diff/3600) + 'h ago';
+  }
+
+  if (tasksEl) tasksEl.textContent = 'Tasks: ' + ago(lastSyncTimes.tasks);
+  if (gmailEl) gmailEl.textContent = 'Gmail: ' + ago(lastSyncTimes.gmail);
+  if (calEl) calEl.textContent = 'Cal: ' + ago(lastSyncTimes.calendar);
+}
+
+/* Live clock updates every second */
+setInterval(updateFooterClocks, 1000);
+
+/* Auto-sync Gmail on load */
+syncGmail();
 </script>
 </body>
 </html>
