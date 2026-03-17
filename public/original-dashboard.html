@@ -899,16 +899,46 @@ footer{border-top:1px solid var(--slate-200);background:var(--white);padding:20p
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
           OneNote — chenshef@gmail.com
         </div>
-        <div class="sec-title">Your Notebooks. <span>3 notebooks · 21+ sections.</span></div>
-        <div class="sec-sub">chenshef@gmail.com · Microsoft OneDrive · Last opened: cisco pov umbrella → Hi peter,</div>
-        <div class="sec-meta">
+        <div class="sec-title" id="nb-title">Your Notebooks. <span>3 notebooks · 21+ sections.</span></div>
+        <div class="sec-sub" id="nb-sync-status">chenshef@gmail.com · Microsoft OneDrive · click Sync to check for new sections</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px">
+          <button id="sync-nb-btn" onclick="syncNotebooks()" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:12px;font-weight:800;padding:8px 18px;border-radius:999px;border:none;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 2px 8px rgba(124,58,237,.3)">
+            <svg id="nb-sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Sync Notebooks
+          </button>
+          <a id="ms-connect-btn" href="/api/ms-connect" style="display:none;align-items:center;gap:6px;background:#0078d4;color:#fff;font-size:12px;font-weight:800;padding:8px 16px;border-radius:999px;text-decoration:none;font-family:inherit">
+            <svg width="13" height="13" viewBox="0 0 23 23" fill="currentColor"><path d="M0 0h11v11H0zm12 0h11v11H12zM0 12h11v11H0zm12 0h11v11H12z"/></svg>
+            Connect Microsoft Account
+          </a>
+          <span id="nb-countdown" style="font-size:11px;color:var(--slate-400);font-weight:700"></span>
+          <a href="https://onedrive.live.com/edit.aspx?resid=3E8018D49DD59537!6445" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--blue);text-decoration:none;background:var(--blue-50);border:1.5px solid var(--blue-200);padding:5px 13px;border-radius:999px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Open in OneNote
+          </a>
+        </div>
+        <div class="sec-meta" id="nb-meta">
           <span class="tag tag-blue">📓 chenshef@gmail.com</span>
           <span class="tag tag-slate">OneNote · OneDrive</span>
-          <span class="tag tag-violet">21+ active sections</span>
-          <a href="https://onedrive.live.com" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--blue);text-decoration:none;background:var(--blue-50);border:1.5px solid var(--blue-200);padding:5px 13px;border-radius:999px;margin-left:8px">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            Open in OneDrive
-          </a>
+          <span class="tag tag-violet">21+ sections</span>
+        </div>
+      </div>
+
+      <!-- Live: new sections last 7 days -->
+      <div id="nb-new-sections" style="display:none;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-size:12px;font-weight:900;color:var(--violet-600);text-transform:uppercase;letter-spacing:.7px">🆕 New / Updated Sections — Last 7 Days</span>
+        </div>
+        <div class="card" style="padding:0">
+          <table>
+            <thead><tr>
+              <th style="width:36px">#</th>
+              <th>Section Name</th>
+              <th style="width:200px">Notebook</th>
+              <th style="width:180px">Last Modified</th>
+              <th style="width:90px">Open</th>
+            </tr></thead>
+            <tbody id="nb-new-tbody"></tbody>
+          </table>
         </div>
       </div>
 
@@ -1995,6 +2025,126 @@ setInterval(updateFooterClocks, 1000);
 
 /* Auto-sync Gmail on load */
 syncGmail();
+
+/* ── Notebooks Sync ── */
+let nbCountdownInterval = null;
+let nbNextSyncTime = null;
+
+async function syncNotebooks() {
+  const btn = document.getElementById('sync-nb-btn');
+  const icon = document.getElementById('nb-sync-icon');
+  const status = document.getElementById('nb-sync-status');
+  const title = document.getElementById('nb-title');
+  const connectBtn = document.getElementById('ms-connect-btn');
+
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  icon.style.animation = 'spin 1s linear infinite';
+  if (connectBtn) connectBtn.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/onenote');
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (data.needsMsSetup) {
+        status.innerHTML = '⚙️ Microsoft OAuth not configured yet — contact admin to add MICROSOFT_CLIENT_ID env var';
+        return;
+      }
+      if (data.needsMsConnect) {
+        status.innerHTML = '🔗 Microsoft account not connected yet';
+        if (connectBtn) connectBtn.style.display = 'inline-flex';
+        return;
+      }
+      status.innerHTML = '❌ Sync failed: ' + (data.error || 'Unknown error');
+      return;
+    }
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+    const dateStr = now.toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'});
+
+    title.innerHTML = 'Your Notebooks. <span>' + data.totalNotebooks + ' notebooks · ' + data.totalSections + ' sections.</span>';
+    status.textContent = 'chenshef@gmail.com · Microsoft OneNote · Synced live · ' + dateStr + ' at ' + timeStr;
+
+    /* Update meta */
+    const meta = document.getElementById('nb-meta');
+    if (meta) {
+      meta.innerHTML =
+        '<span class="tag tag-blue">📓 chenshef@gmail.com</span>' +
+        '<span class="tag tag-slate">OneNote · ' + data.totalNotebooks + ' notebooks</span>' +
+        '<span class="tag tag-violet">' + data.totalSections + ' sections total</span>' +
+        '<span class="tag tag-teal">✅ Synced at ' + timeStr + '</span>' +
+        (data.newSections.length > 0 ? '<span class="tag tag-amber">🆕 ' + data.newSections.length + ' updated this week</span>' : '');
+    }
+
+    /* Update stats */
+    const nbTab = document.getElementById('tab-notebooks');
+    if (nbTab) {
+      const statDivs = nbTab.querySelectorAll('.stat');
+      if (statDivs[0]) {
+        statDivs[0].querySelector('.stat-value').textContent = data.totalSections;
+        statDivs[0].querySelector('.stat-label').textContent = 'Sections across all notebooks';
+      }
+    }
+
+    /* Show new sections panel */
+    const newPanel = document.getElementById('nb-new-sections');
+    const newTbody = document.getElementById('nb-new-tbody');
+    if (newTbody) {
+      newTbody.innerHTML = '';
+      if (data.newSections.length > 0) {
+        newPanel.style.display = 'block';
+        data.newSections.forEach((s, i) => {
+          const d = s.lastModified ? new Date(s.lastModified) : null;
+          const dateStr2 = d ? d.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+          const tr = document.createElement('tr');
+          tr.style.background = 'var(--violet-50)';
+          tr.innerHTML =
+            '<td class="n">' + (i+1) + '</td>' +
+            '<td><span class="subj-title" style="color:var(--violet-600)">🆕 ' + escHtml(s.name) + '</span></td>' +
+            '<td><span class="pill pill-slate">📓 ' + escHtml(s.notebookName || '') + '</span></td>' +
+            '<td><span class="time-pill" style="font-size:11px"><span class="dot dot-blue"></span>' + escHtml(dateStr2) + '</span></td>' +
+            '<td><a href="https://onedrive.live.com" target="_blank" style="font-size:11px;font-weight:800;color:var(--violet-600);text-decoration:none;border:1px solid #ddd6fe;padding:3px 9px;border-radius:999px;background:var(--violet-50)">↗ Open</a></td>';
+          newTbody.appendChild(tr);
+        });
+      } else {
+        newPanel.style.display = 'block';
+        newTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;font-size:12px;color:var(--slate-400);padding:16px">✅ No new or updated sections in the last 7 days</td></tr>';
+      }
+    }
+
+    /* Countdown */
+    startNbCountdown();
+
+  } catch(e) {
+    status.textContent = '❌ Network error — check connection';
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    icon.style.animation = '';
+  }
+}
+
+function startNbCountdown() {
+  nbNextSyncTime = Date.now() + 5 * 60 * 1000;
+  if (nbCountdownInterval) clearInterval(nbCountdownInterval);
+  nbCountdownInterval = setInterval(() => {
+    const el = document.getElementById('nb-countdown');
+    if (!el || !nbNextSyncTime) return;
+    const remaining = Math.max(0, Math.floor((nbNextSyncTime - Date.now()) / 1000));
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    el.textContent = '⏱ Next sync in ' + m + ':' + (s < 10 ? '0' : '') + s;
+    if (remaining <= 0) syncNotebooks();
+  }, 1000);
+}
+
+/* Check on page load if ms=connected param is in URL (after Microsoft OAuth redirect) */
+if (new URLSearchParams(window.location.search).get('ms') === 'connected') {
+  history.replaceState({}, '', window.location.pathname);
+  syncNotebooks();
+}
 </script>
 </body>
 </html>
